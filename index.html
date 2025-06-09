@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>コーヒーマシンUI</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- UIはここに動的に表示されます -->
+  </div>
+  <script>
+    // ステップ管理
+    let step = 0;
+    let selected = {
+      size: '',
+      type: '',
+      temp: '',
+      strength: ''
+    };
+    const app = document.getElementById('app');
+
+    function renderSelectedIcons() {
+      let html = '<div class="selected-icons">';
+      if (selected.size) {
+        html += `<span class="selected-icon size">${selected.size === 'Large' ? 'L' : 'R'}</span>`;
+      }
+      if (selected.type) {
+        html += `<span class="selected-icon type">`;
+        if (selected.type === 'カフェラテ') {
+          html += '<div class="icon-milk"></div>';
+        } else if (selected.type === 'コーヒー') {
+          html += '<div class="icon-bean"></div>';
+        }
+        html += `</span>`;
+      }
+      if (selected.temp) {
+        html += `<span class="selected-icon temp">`;
+        if (selected.temp === 'つめたい') {
+          html += '<div class="icon-snow"><div class="flake-line"></div><div class="flake-line"></div><div class="flake-line"></div><div class="flake-line"></div><div class="flake-line"></div><div class="flake-line"></div></div>';
+        } else {
+          html += '<div class="icon-fire"><div class="flame"><div class="flame-main"></div><div class="flame-inner"></div></div></div>';
+        }
+        html += `</span>`;
+      }
+      if (selected.strength) {
+        let color = selected.strength === '薄め' ? '#e0f7fa' : selected.strength === '普通' ? '#bcaaa4' : '#5d4037';
+        let textColor = selected.strength === '濃いめ' ? '#fff' : '#3e2723';
+        html += `<span class="selected-icon strength" style="background:${color};color:${textColor};">${selected.strength}</span>`;
+      }
+      html += '</div>';
+      return html;
+    }
+
+    function render() {
+      app.innerHTML = renderSelectedIcons() + (
+        step === 0 ? `
+          <div class="step">
+            <div class="step-label">選択して開始</div>
+            <button class="btn" onclick="next('size','Regular')">Regular</button>
+            <button class="btn" onclick="next('size','Large')">Large</button>
+          </div>
+        ` : step === 1 ? `
+          <div class="step">
+            <div class="type-row">
+              <button class="icon-btn" onclick="next('type','カフェラテ')">
+                <div class="icon-milk"></div>
+                <div>カフェラテ</div>
+              </button>
+              <button class="icon-btn" onclick="next('type','コーヒー')">
+                <div class="icon-bean"></div>
+                <div>コーヒー</div>
+              </button>
+            </div>
+          </div>
+        ` : step === 2 ? `
+          <div class="step">
+            <div class="temp-row">
+              <button class="icon-btn" onclick="next('temp','つめたい')">
+                <div class="icon-snow">
+                  <div class="flake-line"></div>
+                  <div class="flake-line"></div>
+                  <div class="flake-line"></div>
+                  <div class="flake-line"></div>
+                  <div class="flake-line"></div>
+                  <div class="flake-line"></div>
+                </div>
+                <div>つめたい</div>
+              </button>
+              <button class="icon-btn" onclick="next('temp','あたたかい')">
+                <div class="icon-fire">
+                  <div class="flame">
+                    <div class="flame-main"></div>
+                    <div class="flame-inner"></div>
+                  </div>
+                </div>
+                <div>あたたかい</div>
+              </button>
+            </div>
+          </div>
+        ` : step === 3 && selected.type === 'コーヒー' ? `
+          <div class="step">
+            <div class="strength-label">濃さを選んでください</div>
+            <div class="strength-row">
+              <button class="strength-btn" onclick="next('strength','薄め')">薄め</button>
+              <button class="strength-btn" onclick="next('strength','普通')">普通</button>
+              <button class="strength-btn" onclick="next('strength','濃いめ')">濃いめ</button>
+            </div>
+          </div>
+        ` : (step === 3 && selected.type === 'カフェラテ') || (step === 4) ? `
+          <!-- アニメーション -->
+          <div class="animation-area">
+            <div class="cup-anim">
+              <div class="steam">
+                <div></div><div></div><div></div>
+              </div>
+              <div class="cup">
+                <div class="coffee-fill" id="coffeeFill"></div>
+              </div>
+            </div>
+          </div>
+        ` : step === 5 ? `
+          <div class="finish-area">
+            <div class="finish-text">取り出してください</div>
+            <div class="finish-text small">ご利用ありがとうございました</div>
+          </div>
+        ` : ''
+      );
+
+      // アニメーション処理（カフェラテ or コーヒー抽出時）
+      if (((step === 3 && selected.type === 'カフェラテ') || step === 4) && document.getElementById('coffeeFill')) {
+        setTimeout(() => {
+          step = 5;
+          render();
+        }, 9000);
+        setTimeout(() => {
+          document.getElementById('coffeeFill').classList.add('fill');
+        }, 100);
+      } else if (step === 5) {
+        setTimeout(() => {
+          step = 0;
+          selected = {size:'',type:'',temp:'',strength:''};
+          render();
+        }, 5000);
+      }
+    }
+
+    window.next = function(key, value) {
+      selected[key] = value;
+      step++;
+      render();
+    };
+
+    render();
+  </script>
+</body>
+</html>
